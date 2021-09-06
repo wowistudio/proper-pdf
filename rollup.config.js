@@ -23,22 +23,43 @@ function license(filename) {
 export default [
   // Un-bundled builds.
   {
-    name: 'html2pdf',
     input: 'src/index.js',
     output: [
-      { file: pkg.main, format: 'cjs' },
-      { file: pkg.module, format: 'es' },
-      { file: pkg.browser, format: 'umd' }
+      {
+				name: 'html2pdf',
+				file: pkg.main,
+				format: 'cjs',
+				globals: {
+					'es6-promise': 'es6promise',
+					jspdf: 'jsPDF',
+					html2canvas: 'html2canvas'
+				},
+			},
+      {
+				name: 'html2pdf',
+				file: pkg.module,
+				format: 'es',
+				globals: {
+					'es6-promise': 'es6promise',
+					jspdf: 'jsPDF',
+					html2canvas: 'html2canvas'
+				},
+			},
+      {
+				name: 'html2pdf',
+				file: pkg.browser,
+				format: 'umd',
+				globals: {
+					'es6-promise': 'es6promise',
+					jspdf: 'jsPDF',
+					html2canvas: 'html2canvas'
+				},
+			}
     ],
     external: [
       'jspdf',
       'html2canvas',
     ],
-    globals: {
-      'es6-promise': 'es6promise',
-      jspdf: 'jsPDF',
-      html2canvas: 'html2canvas'
-    },
     plugins: [
       resolve(),
       commonjs(),
@@ -49,20 +70,24 @@ export default [
   },
   // Un-bundled builds (minified).
   {
-    name: 'html2pdf',
+
     input: 'src/index.js',
     output: [
-      { file: pkg.browser.replace(/js$/, 'min.js'), format: 'umd' }
+      { 
+				name: 'html2pdf',
+				file: pkg.browser.replace(/js$/, 'min.js'),
+				format: 'umd',
+				globals: {
+					'es6-promise': 'es6promise',
+					jspdf: 'jsPDF',
+					html2canvas: 'html2canvas'
+				},
+			}
     ],
     external: [
       'jspdf',
       'html2canvas',
     ],
-    globals: {
-      'es6-promise': 'es6promise',
-      jspdf: 'jsPDF',
-      html2canvas: 'html2canvas'
-    },
     plugins: [
       resolve(),
       commonjs(),
@@ -75,16 +100,19 @@ export default [
   },
   // Bundled builds.
   {
-    name: 'html2pdf',
-    input: 'src/index.js',
+		input: 'src/index.js',
     output: [
-      { file: pkg.browser.replace(/js$/, 'bundle.js'), format: 'umd' }
+			{
+				name: 'html2pdf',
+				file: pkg.browser.replace(/js$/, 'bundle.js'),
+				format: 'umd',
+				globals: {
+					'es6-promise': 'es6promise',
+					jspdf: 'jsPDF',
+					html2canvas: 'html2canvas'
+				},
+			}
     ],
-    globals: {
-      'es6-promise': 'es6promise',
-      jspdf: 'jsPDF',
-      html2canvas: 'html2canvas'
-    },
     plugins: [
       resolve(),
       commonjs(),
@@ -95,16 +123,19 @@ export default [
   },
   // Bundled builds (minified).
   {
-    name: 'html2pdf',
-    input: 'src/index.js',
+		input: 'src/index.js',
     output: [
-      { file: pkg.browser.replace(/js$/, 'bundle.min.js'), format: 'umd' }
+			{ 
+				name: 'html2pdf',
+				file: pkg.browser.replace(/js$/, 'bundle.min.js'),
+				format: 'umd',
+				globals: {
+					'es6-promise': 'es6promise',
+					jspdf: 'jsPDF',
+					html2canvas: 'html2canvas'
+				},
+			}
     ],
-    globals: {
-      'es6-promise': 'es6promise',
-      jspdf: 'jsPDF',
-      html2canvas: 'html2canvas'
-    },
     plugins: [
       resolve(),
       commonjs(),

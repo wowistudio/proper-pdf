@@ -1,3 +1,4 @@
+
 /**
  * html2pdf.js v0.9.3
  * Copyright (c) 2021 Erik Koopmans
@@ -12,26 +13,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var _extends = Object.assign || function (target) {
   for (var i = 1; i < arguments.length; i++) {
     var source = arguments[i];
@@ -44,6 +25,54 @@ var _extends = Object.assign || function (target) {
   }
 
   return target;
+};
+
+var slicedToArray = function () {
+  function sliceIterator(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"]) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  return function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      return sliceIterator(arr, i);
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+}();
+
+var toConsumableArray = function (arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  } else {
+    return Array.from(arr);
+  }
 };
 
 // Determine the type of a variable/object.
@@ -124,8 +153,6 @@ function commonjsRequire () {
 	throw new Error('Dynamic requires are not currently supported by rollup-plugin-commonjs');
 }
 
-
-
 function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
@@ -141,7 +168,8 @@ var es6Promise = createCommonjsModule(function (module, exports) {
 
 (function (global, factory) {
 	module.exports = factory();
-}(commonjsGlobal, (function () { function objectOrFunction(x) {
+}(commonjsGlobal, (function () {
+function objectOrFunction(x) {
   var type = typeof x;
   return x !== null && (type === 'object' || type === 'function');
 }
@@ -569,9 +597,7 @@ function invokeCallback(settled, promise, callback, detail) {
     succeeded = true;
   }
 
-  if (promise._state !== PENDING) {
-    // noop
-  } else if (hasCallback && succeeded) {
+  if (promise._state !== PENDING) ; else if (hasCallback && succeeded) {
     resolve(promise, value);
   } else if (failed) {
     reject(promise, error);
@@ -1312,14 +1338,14 @@ return Promise$1;
 
 });
 
-var Promise$1 = es6Promise.Promise;
+var Promise = es6Promise.Promise;
 
 /* ----- CONSTRUCTOR ----- */
 
 var Worker = function Worker(opt) {
   // Create the root parent for the proto chain, and the starting Worker.
-  var root = _extends(Worker.convert(Promise$1.resolve()), JSON.parse(JSON.stringify(Worker.template)));
-  var self = Worker.convert(Promise$1.resolve(), root);
+  var root = _extends(Worker.convert(Promise.resolve()), JSON.parse(JSON.stringify(Worker.template)));
+  var self = Worker.convert(Promise.resolve(), root);
 
   // Set progress, optional settings, and return.
   self = self.setProgress(1, Worker, 1, [Worker]);
@@ -1328,7 +1354,7 @@ var Worker = function Worker(opt) {
 };
 
 // Boilerplate for subclassing Promise.
-Worker.prototype = Object.create(Promise$1.prototype);
+Worker.prototype = Object.create(Promise.prototype);
 Worker.prototype.constructor = Worker;
 
 // Converts/casts promises into Workers.
@@ -1600,7 +1626,7 @@ Worker.prototype.save = function save(filename) {
 
 /* ----- SET / GET ----- */
 
-Worker.prototype.set = function set$$1(opt) {
+Worker.prototype.set = function set(opt) {
   // TODO: Implement ordered pairs?
 
   // Silently ignore invalid or empty input.
@@ -1610,27 +1636,27 @@ Worker.prototype.set = function set$$1(opt) {
 
   // Build an array of setter functions to queue.
   var fns = Object.keys(opt || {}).map(function (key) {
-    if (key in Worker.template.prop) {
-      // Set pre-defined properties.
-      return function set_prop() {
-        this.prop[key] = opt[key];
-      };
-    } else {
-      switch (key) {
-        case 'margin':
-          return this.setMargin.bind(this, opt.margin);
-        case 'jsPDF':
-          return function set_jsPDF() {
-            this.opt.jsPDF = opt.jsPDF;return this.setPageSize();
+    switch (key) {
+      case 'margin':
+        return this.setMargin.bind(this, opt.margin);
+      case 'jsPDF':
+        return function set_jsPDF() {
+          this.opt.jsPDF = opt.jsPDF;return this.setPageSize();
+        };
+      case 'pageSize':
+        return this.setPageSize.bind(this, opt.pageSize);
+      default:
+        if (key in Worker.template.prop) {
+          // Set pre-defined properties in prop.
+          return function set_prop() {
+            this.prop[key] = opt[key];
           };
-        case 'pageSize':
-          return this.setPageSize.bind(this, opt.pageSize);
-        default:
+        } else {
           // Set any other properties in opt.
           return function set_opt() {
             this.opt[key] = opt[key];
           };
-      }
+        }
     }
   }, this);
 
@@ -1640,7 +1666,7 @@ Worker.prototype.set = function set$$1(opt) {
   });
 };
 
-Worker.prototype.get = function get$$1(key, cbk) {
+Worker.prototype.get = function get(key, cbk) {
   return this.then(function get_main() {
     // Fetch the requested property, either as a predefined prop or in opt.
     var val = key in Worker.template.prop ? this.prop[key] : this.opt[key];
@@ -1719,7 +1745,7 @@ Worker.prototype.then = function then(onFulfilled, onRejected) {
   return this.thenCore(onFulfilled, onRejected, function then_main(onFulfilled, onRejected) {
     // Update progress while queuing, calling, and resolving `then`.
     self.updateProgress(null, null, 1, [onFulfilled]);
-    return Promise$1.prototype.then.call(this, function then_pre(val) {
+    return Promise.prototype.then.call(this, function then_pre(val) {
       self.updateProgress(null, onFulfilled);
       return val;
     }).then(onFulfilled, onRejected).then(function then_post(val) {
@@ -1731,7 +1757,7 @@ Worker.prototype.then = function then(onFulfilled, onRejected) {
 
 Worker.prototype.thenCore = function thenCore(onFulfilled, onRejected, thenBase) {
   // Handle optional thenBase parameter.
-  thenBase = thenBase || Promise$1.prototype.then;
+  thenBase = thenBase || Promise.prototype.then;
 
   // Wrap `this` for encapsulation and bind it to the promise handlers.
   var self = this;
@@ -1743,8 +1769,8 @@ Worker.prototype.thenCore = function thenCore(onFulfilled, onRejected, thenBase)
   }
 
   // Cast self into a Promise to avoid polyfills recursively defining `then`.
-  var isNative = Promise$1.toString().indexOf('[native code]') !== -1 && Promise$1.name === 'Promise';
-  var selfPromise = isNative ? self : Worker.convert(_extends({}, self), Promise$1.prototype);
+  var isNative = Promise.toString().indexOf('[native code]') !== -1 && Promise.name === 'Promise';
+  var selfPromise = isNative ? self : Worker.convert(_extends({}, self), Promise.prototype);
 
   // Return the promise, after casting it into a Worker and preserving props.
   var returnVal = thenBase.call(selfPromise, onFulfilled, onRejected);
@@ -1753,7 +1779,7 @@ Worker.prototype.thenCore = function thenCore(onFulfilled, onRejected, thenBase)
 
 Worker.prototype.thenExternal = function thenExternal(onFulfilled, onRejected) {
   // Call `then` and return a standard promise (exits the Worker chain).
-  return Promise$1.prototype.then.call(this, onFulfilled, onRejected);
+  return Promise.prototype.then.call(this, onFulfilled, onRejected);
 };
 
 Worker.prototype.thenList = function thenList(fns) {
@@ -1770,13 +1796,13 @@ Worker.prototype['catch'] = function (onRejected) {
   if (onRejected) {
     onRejected = onRejected.bind(this);
   }
-  var returnVal = Promise$1.prototype['catch'].call(this, onRejected);
+  var returnVal = Promise.prototype['catch'].call(this, onRejected);
   return Worker.convert(returnVal, this);
 };
 
 Worker.prototype.catchExternal = function catchExternal(onRejected) {
   // Call `catch` and return a standard promise (exits the Worker chain).
-  return Promise$1.prototype['catch'].call(this, onRejected);
+  return Promise.prototype['catch'].call(this, onRejected);
 };
 
 Worker.prototype.error = function error(msg) {
@@ -1794,6 +1820,7 @@ Worker.prototype.export = Worker.prototype.output;
 Worker.prototype.run = Worker.prototype.then;
 
 // Import dependencies.
+
 // Get dimensions of a PDF page, as determined by jsPDF.
 jsPDF.getPageSize = function (orientation, unit, format) {
   // Decode options object
@@ -1932,6 +1959,34 @@ Worker.template.opt.pagebreak = {
   avoid: []
 };
 
+/* Add opiniated unique id (uid) to all elements in the body:
+	UIDs are needed for to reference elements when break after
+	Break afters will be executed after all the elements in the node tree of the elemement after we should break have been cycled through
+
+	UIDs for elements are created like:
+	body (0)
+		> child (00)
+		> child (01)
+			> child (010)
+			> child (011)
+				> child (0110)
+				...
+			> child (012)
+			...
+*/
+Worker.prototype.addUIDRecursive = function (element) {
+  var _this = this;
+
+  var uid = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+  var childrenArr = [].concat(toConsumableArray(element.children));
+  element.setAttribute('uid', uid);
+
+  if (childrenArr.length) childrenArr.forEach(function (childElement, index) {
+    _this.addUIDRecursive(childElement, '' + element.getAttribute('uid') + index);
+  });
+};
+
 Worker.prototype.toContainer = function toContainer() {
   return orig.toContainer.call(this).then(function toContainer_pagebreak() {
     // Setup root element and inner page height.
@@ -1961,9 +2016,36 @@ Worker.prototype.toContainer = function toContainer() {
     var legacyEls = root.querySelectorAll('.html2pdf__page-break');
     legacyEls = Array.prototype.slice.call(legacyEls);
 
+    // Add uids to elements needed for breakAfter
+    this.addUIDRecursive(root);
+
+    // Array to keep breakAfter functions to be executed
+    // Example element in array:
+    // [uid1, fn, boolean (fn executed?)]
+    var breakAfter = [];
+
+    // Returns breakAfters that requires execution
+    function pendingBreakAfters(currentEl) {
+      return breakAfter.filter(function (_ref) {
+        var _ref2 = slicedToArray(_ref, 3),
+            _ = _ref2[0],
+            __ = _ref2[1],
+            executed = _ref2[2];
+
+        return !executed;
+      }).filter(function (_ref3) {
+        var _ref4 = slicedToArray(_ref3, 1),
+            uid = _ref4[0];
+
+        return !currentEl.getAttribute('uid').startsWith(uid);
+      }).reverse();
+    }
+
     // Loop through all elements.
     var els = root.querySelectorAll('*');
     Array.prototype.forEach.call(els, function pagebreak_loop(el) {
+      var uid = el.getAttribute('uid');
+
       // Setup pagebreak rules based on legacy and avoidAll modes.
       var rules = {
         before: false,
@@ -1991,6 +2073,24 @@ Worker.prototype.toContainer = function toContainer() {
         rules[key] = rules[key] || select[key].indexOf(el) !== -1;
       });
 
+      // After: Execute the pendingBreak functions & push 'true' so that next time the function is filtered out
+      pendingBreakAfters(el).forEach(function (arr) {
+        arr[1]();
+        arr[2] = true;
+      });
+
+      // After: (wrap in a function to be executed later) Create a padding div to fill the remaining page
+      if (rules.after) {
+        breakAfter.push([uid, function () {
+          var style = {
+            height: pxPageHeight - el.getBoundingClientRect().bottom % pxPageHeight + 'px',
+            display: 'block'
+          };
+          var pad = createElement('div', { style: style });
+          el.parentNode.insertBefore(pad, el.nextSibling);
+        }, false]);
+      }
+
       // Get element position on the screen.
       // TODO: Subtract the top of the container from clientRect.top/bottom?
       var clientRect = el.getBoundingClientRect();
@@ -1998,7 +2098,7 @@ Worker.prototype.toContainer = function toContainer() {
       // Avoid: Check if a break happens mid-element.
       if (rules.avoid && !rules.before) {
         var startPage = Math.floor(clientRect.top / pxPageHeight);
-        var endPage = Math.floor(clientRect.bottom / pxPageHeight);
+        var endPage = Math.floor((clientRect.bottom - 1) / pxPageHeight);
         var nPages = Math.abs(clientRect.bottom - clientRect.top) / pxPageHeight;
 
         // Turn on rules.before if the el is broken and is at most one page long.
@@ -2014,15 +2114,6 @@ Worker.prototype.toContainer = function toContainer() {
             height: pxPageHeight - clientRect.top % pxPageHeight + 'px'
           } });
         el.parentNode.insertBefore(pad, el);
-      }
-
-      // After: Create a padding div to fill the remaining page.
-      if (rules.after) {
-        var pad = createElement('div', { style: {
-            display: 'block',
-            height: pxPageHeight - clientRect.bottom % pxPageHeight + 'px'
-          } });
-        el.parentNode.insertBefore(pad, el.nextSibling);
       }
     });
   });
