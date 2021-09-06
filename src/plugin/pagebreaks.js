@@ -1,5 +1,5 @@
 import Worker from '../worker.js';
-import { objType, createElement } from '../utils.js';
+import { createElement } from '../utils.js';
 
 /* Pagebreak plugin:
 
@@ -36,6 +36,32 @@ Worker.template.opt.pagebreak = {
   avoid: []
 };
 
+/* Add opiniated unique id (uid) to all elements in the body:
+	UIDs are needed for to reference elements when break after
+	Break afters will be executed after all the elements in the node tree of the elemement after we should break have been cycled through
+
+	UIDs for elements are created like:
+	body (0)
+		> child (00)
+		> child (01)
+			> child (010)
+			> child (011)
+				> child (0110)
+				...
+			> child (012)
+			...
+*/
+Worker.prototype.addUIDRecursive = function(element, uid = 0) {
+	const childrenArr = [...element.children]
+	element.setAttribute('uid', uid)
+
+
+	if (childrenArr.length)
+		childrenArr.forEach((childElement, index) => {
+			this.addUIDRecursive(childElement, `${element.getAttribute('uid')}${index}`)
+		})
+}
+
 Worker.prototype.toContainer = function toContainer() {
   return orig.toContainer.call(this).then(function toContainer_pagebreak() {
     // Setup root element and inner page height.
@@ -66,9 +92,27 @@ Worker.prototype.toContainer = function toContainer() {
     var legacyEls = root.querySelectorAll('.html2pdf__page-break');
     legacyEls = Array.prototype.slice.call(legacyEls);
 
+		// Add uids to elements needed for breakAfter
+		this.addUIDRecursive(root)
+
+		// Array to keep breakAfter functions to be executed
+		// Example element in array:
+		// [uid1, fn, boolean (fn executed?)]
+		var breakAfter = [];
+
+		// Returns breakAfters that requires execution
+		function pendingBreakAfters(currentEl) {
+			return breakAfter
+				.filter(([_, __, executed]) => !executed)
+				.filter(([uid]) => !currentEl.getAttribute('uid').startsWith(uid))
+				.reverse()
+		}
+
     // Loop through all elements.
     var els = root.querySelectorAll('*');
     Array.prototype.forEach.call(els, function pagebreak_loop(el) {
+			var uid = el.getAttribute('uid');
+			
       // Setup pagebreak rules based on legacy and avoidAll modes.
       var rules = {
         before: false,
@@ -95,6 +139,30 @@ Worker.prototype.toContainer = function toContainer() {
       Object.keys(rules).forEach(function(key) {
         rules[key] = rules[key] || select[key].indexOf(el) !== -1;
       });
+		
+			// After: Execute the pendingBreak functions & push 'true' so that next time the function is filtered out
+			pendingBreakAfters(el).forEach((arr) => {
+				arr[1]()
+				arr[2] = true
+			})
+
+      // After: (wrap in a function to be executed later) Create a padding div to fill the remaining page
+      if (rules.after) {
+				breakAfter.push(
+					[
+						uid, 
+						() => {
+							const style = {
+								height: (pxPageHeight - el.getBoundingClientRect().bottom % pxPageHeight) + 'px',
+								display: 'block'
+							}
+							var pad = createElement('div', { style });
+							el.parentNode.insertBefore(pad, el.nextSibling);
+						},
+						false
+					]
+				)
+      }
 
       // Get element position on the screen.
       // TODO: Subtract the top of the container from clientRect.top/bottom?
@@ -103,7 +171,7 @@ Worker.prototype.toContainer = function toContainer() {
       // Avoid: Check if a break happens mid-element.
       if (rules.avoid && !rules.before) {
         var startPage = Math.floor(clientRect.top / pxPageHeight);
-        var endPage = Math.floor(clientRect.bottom / pxPageHeight);
+        var endPage = Math.floor((clientRect.bottom - 1) / pxPageHeight);
         var nPages = Math.abs(clientRect.bottom - clientRect.top) / pxPageHeight;
 
         // Turn on rules.before if the el is broken and is at most one page long.
@@ -121,14 +189,6 @@ Worker.prototype.toContainer = function toContainer() {
         el.parentNode.insertBefore(pad, el);
       }
 
-      // After: Create a padding div to fill the remaining page.
-      if (rules.after) {
-        var pad = createElement('div', {style: {
-          display: 'block',
-          height: pxPageHeight - (clientRect.bottom % pxPageHeight) + 'px'
-        }});
-        el.parentNode.insertBefore(pad, el.nextSibling);
-      }
     });
   });
 };
